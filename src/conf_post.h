@@ -1,6 +1,6 @@
 /* conf_post.h --- configure.ac includes this via AH_BOTTOM
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2016 Free Software
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2017 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -33,6 +33,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <stdbool.h>
+
+/* GNUC_PREREQ (V, W, X) is true if this is GNU C version V.W.X or later.
+   It can be used in a preprocessor expression.  */
+#ifndef __GNUC_MINOR__
+# define GNUC_PREREQ(v, w, x) false
+#elif ! defined __GNUC_PATCHLEVEL__
+# define GNUC_PREREQ(v, w, x) ((v) < __GNUC__ + ((w) <= __GNUC_MINOR__))
+#else
+# define GNUC_PREREQ(v, w, x) \
+    ((v) < __GNUC__ + ((w) <= __GNUC_MINOR__ + ((x) <= __GNUC_PATCHLEVEL__)))
+#endif
 
 /* The type of bool bitfields.  Needed to compile Objective-C with
    standard GCC.  It was also needed to port to pre-C99 compilers,
@@ -88,12 +99,6 @@ typedef bool bool_bf;
 /* Name of the section to place the pure space.  */
 //#define PURE_SECTION EMACS_READ_ONLY_SEGMENT ",pure"
 #endif
-/* The following solves the problem that Emacs hangs when evaluating
-   (make-comint "test0" "/nodir/nofile" nil "") when /nodir/nofile
-   does not exist.  Also, setsid is not allowed in the vfork child's
-   context as of Darwin 9/Mac OS X 10.5.  */
-#undef HAVE_WORKING_VFORK
-#define vfork fork
 #endif  /* DARWIN_OS */
 
 /* If HYBRID_MALLOC is defined (e.g., on Cygwin), emacs will use
@@ -186,7 +191,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #endif
 #endif  /* MSDOS */
 
-/* Mac OS X / GNUstep need a bit more pure memory.  Of the existing knobs,
+/* macOS / GNUstep need a bit more pure memory.  Of the existing knobs,
    SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #ifdef HAVE_NS
 #if defined NS_IMPL_GNUSTEP
